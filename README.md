@@ -1,163 +1,61 @@
-# Hackathon Challenge
+# Micro-Ops Hackathon Solution
 
-Your challenge is to take this simple e-commerce backend and turn it into a fully containerized microservices setup using Docker and solid DevOps practices.
+This repository contains the fully containerized microservices solution for the Micro-Ops Hackathon Challenge.
 
-## Problem Statement
+## Live Deployment
 
-The backend setup consisting of:
+The application is deployed on Render and is accessible at:
+https://hackathon-gateway.onrender.com
 
-- A service for managing products
-- A gateway that forwards API requests
+## Project Architecture
 
-The system must be containerized, secure, optimized, and maintain data persistence across container restarts.
+The solution implements a secure Gateway pattern:
+1. Gateway Service (Public): Exposed on port 5921. Handles all incoming traffic.
+2. Backend Service (Private): Runs on port 3847. Isolated within the Docker network and not accessible from the host machine.
+3. Database (Private): MongoDB instance running on port 27017. Isolated and persistent.
 
-## Architecture
+## Prerequisites
 
-```
-                    ┌─────────────────┐
-                    │   Client/User   │
-                    └────────┬────────┘
-                             │
-                             │ HTTP (port 5921)
-                             │
-                    ┌────────▼────────┐
-                    │    Gateway      │
-                    │  (port 5921)    │
-                    │   [Exposed]     │
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-         ┌──────────▼──────────┐      │
-         │   Private Network   │      │
-         │  (Docker Network)   │      │
-         └──────────┬──────────┘      │
-                    │                 │
-         ┌──────────┴──────────┐      │
-         │                     │      │
-    ┌────▼────┐         ┌──────▼──────┐
-    │ Backend │         │   MongoDB   │
-    │(port    │◄────────┤  (port      │
-    │ 3847)   │         │  27017)     │
-    │[Not     │         │ [Not        │
-    │Exposed] │         │ Exposed]    │
-    └─────────┘         └─────────────┘
-```
+- Docker
+- Docker Compose
+- Make (Optional, for using Makefile commands)
 
-**Key Points:**
-- Gateway is the only service exposed to external clients (port 5921)
-- All external requests must go through the Gateway
-- Backend and MongoDB should not be exposed to public network
+## How to Run Locally
 
-## Project Structure
+You can start the application using Docker Compose directly or via the Makefile.
 
-**DO NOT CHANGE THE PROJECT STRUCTURE.** The following structure must be maintained:
+### Method 1: Using Docker Compose
 
-```
-.
-├── backend/
-│   ├── Dockerfile
-│   ├── Dockerfile.dev
-│   └── src/
-├── gateway/
-│   ├── Dockerfile
-│   ├── Dockerfile.dev
-│   └── src/
-├── docker/
-│   ├── compose.development.yaml
-│   └── compose.production.yaml
-├── Makefile
-└── README.md
-```
+Run the following command from the root directory:
 
-## Environment Variables
+docker-compose -f docker/compose.development.yaml up --build
 
-Create a `.env` file in the root directory with the following variables (do not commit actual values):
+### Method 2: Using Makefile
 
-```env
-MONGO_INITDB_ROOT_USERNAME=
-MONGO_INITDB_ROOT_PASSWORD=
-MONGO_URI=
-MONGO_DATABASE=
-BACKEND_PORT=3847 # DO NOT CHANGE
-GATEWAY_PORT=5921 # DO NOT CHANGE 
-NODE_ENV=
-```
+If you are on a Unix-based system or have Make installed:
 
-## Expectations (Open ended, DO YOUR BEST!!!)
+make dev-up
 
-- Separate Dev and Prod configs
-- Data Persistence
-- Follow security basics (limit network exposure, sanitize input) 
-- Docker Image Optimization
-- Makefile CLI Commands for smooth dev and prod deploy experience (TRY TO COMPLETE THE COMMANDS COMMENTED IN THE Makefile)
+## API Testing
 
-**ADD WHAT EVER BEST PRACTICES YOU KNOW**
+Once the application is running, use the following commands to verify functionality:
 
-## Testing
-
-Use the following curl commands to test your implementation.
-
-### Health Checks
-
-Check gateway health:
-```bash
-curl http://localhost:5921/health
-```
-
-Check backend health via gateway:
-```bash
+1. Health Check
 curl http://localhost:5921/api/health
-```
 
-### Product Management
-
-Create a product:
-```bash
+2. Create a Product
 curl -X POST http://localhost:5921/api/products \
   -H 'Content-Type: application/json' \
   -d '{"name":"Test Product","price":99.99}'
-```
 
-Get all products:
-```bash
+3. Get All Products
 curl http://localhost:5921/api/products
-```
 
-### Security Test
+## Key Features
 
-Verify backend is not directly accessible (should fail or be blocked):
-```bash
-curl http://localhost:3847/api/products
-```
-
-## Submission Process
-
-1. **Fork the Repository**
-   - Fork this repository to your GitHub account
-   - The repository must remain **private** during the contest
-
-2. **Make Repository Public**
-   - In the **last 5 minutes** of the contest, make your repository **public**
-   - Repositories that remain private after the contest ends will not be evaluated
-
-3. **Submit Repository URL**
-   - Submit your repository URL at [arena.bongodev.com](https://arena.bongodev.com)
-   - Ensure the URL is correct and accessible
-
-4. **Code Evaluation**
-   - All submissions will be both **automated and manually evaluated**
-   - Plagiarism and code copying will result in disqualification
-
-## Rules
-
-- ⚠️ **NO COPYING**: All code must be your original work. Copying code from other participants or external sources will result in immediate disqualification.
-
-- ⚠️ **NO POST-CONTEST COMMITS**: Pushing any commits to the git repository after the contest ends will result in **disqualification**. All work must be completed and committed before the contest deadline.
-
-- ✅ **Repository Visibility**: Keep your repository private during the contest, then make it public in the last 5 minutes.
-
-- ✅ **Submission Deadline**: Ensure your repository is public and submitted before the contest ends.
-
-Good luck!
-
+- Containerization: Fully dockerized services using Docker Compose.
+- Security: Implemented private networking where Backend and Database are hidden from the public network.
+- Optimization: Used multi-stage Docker builds and Alpine-based images for reduced size.
+- Data Persistence: Configured Docker Volumes to ensure data is preserved across container restarts.
+- Configuration: Fixed port configurations to ensure seamless communication between Gateway and Backend.
+- Automation: Included a comprehensive Makefile for easier development and deployment management.
