@@ -1,6 +1,50 @@
-# services:
-  # backend:
+version: '3.8'
 
-  # gateway:
+services:
+  mongo:
+    image: mongo:latest
+    container_name: database
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - micro-ops-net
 
-  # mongo:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: backend-service
+    expose:
+      - "3847"
+    environment:
+      - PORT=3847
+      - BACKEND_PORT=3847
+      - MONGO_URI=mongodb://database:27017/products_db
+    depends_on:
+      - mongo
+    networks:
+      - micro-ops-net
+    restart: on-failure
+
+  gateway:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    ports:
+      - "5921:5921"
+    environment:
+      - GATEWAY_PORT=5921
+      - BACKEND_URL=http://backend:3847
+    depends_on:
+      - backend
+    networks:
+      - micro-ops-net
+    restart: on-failure
+
+networks:
+  micro-ops-net:
+    driver: bridge
+
+volumes:
+  mongo_data:
